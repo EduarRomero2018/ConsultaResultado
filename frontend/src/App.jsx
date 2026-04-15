@@ -14,12 +14,12 @@ function App() {
                 <div
                     className="absolute inset-0 z-0"
                     style={{
-                        background: "radial-gradient(125% 125% at 50% 90%, #fff 40%, #7c3aed 100%)",
+                        background: "radial-gradient(125% 125% at 50% 90%, #fff 40%, #2f2e67 100%)",
                     }}
                 />
                 <div className="relative z-10 min-h-screen flex flex-col">
                     <Navbar />
-                    <main className="max-w-2xl mx-auto p-4 flex-1 w-full">
+                    <main className="flex-1 w-full p-0">
                         <Routes>
                             <Route path="/login" element={<Login />} />
                             <Route path="/upload" element={<Upload />} />

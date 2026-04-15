@@ -49,7 +49,7 @@ router.post('/login', async (req, res) => {
 
     } catch (err) {
         console.error('[LOGIN SYSTEM ERROR]', err);
-        res.status(500).json({ error: 'Error interno del servidor al autenticar' });
+        res.status(500).json({ error: 'Error interno del servidor al autenticar, Valida la conexión de la base de datos' });
     }
 });
 
