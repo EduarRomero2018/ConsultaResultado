@@ -1,8 +1,8 @@
+<<<<<<< HEAD
 # Proyecto: Consulta de Resultados de Electro
 
 Este es un sistema web (Cliente-Servidor) diseñado para permitir la carga y consulta de resultados médicos (específicamente electrocardiogramas o estudios similares en formato PDF). Está compuesto por un **Frontend** desarrollado en React y un **Backend** desarrollado con Node.js y Express apoyado por una base de datos MySQL.
 
-## Arquitectura del Proyecto
 
 El repositorio está dividido en tres carpetas principales:
 
@@ -11,9 +11,6 @@ El repositorio está dividido en tres carpetas principales:
 - **`.github/`**: Puede contener configuraciones para acciones de GitHub (CI/CD) si aplica en el futuro.
 
 ## Funcionalidades Principales
-
-1. **Autenticación (Admin):** Permite a un administrador loguearse en el sistema utilizando credenciales JWT.
-2. **Carga de Resultados:** Interfaz protegida para cargar documentos PDF asociados a un paciente (mediante el tipo y número de documento).
 3. **Consulta Libre de Resultados:** Una página pública (`Search.jsx`) donde el usuario final puede buscar sus resultados introduciendo su tipo y número de documento.
 4. **Descarga Segura:** Endpoint para que los usuarios puedan previsualizar y descargar el documento PDF original que fue cargado por la IPS o médico.
 
@@ -25,24 +22,11 @@ El repositorio está dividido en tres carpetas principales:
 - **Tailwind CSS:** Framework utilitario para los estilos responsivos e interfaz moderna.
 - **React Router Dom:** Manejo de rutas internas (`Search`, `Upload`, etc).
 - **Axios:** Para el consumo de endpoints del backend.
-- **SweetAlert2:** Para notificaciones visuales (alertas) hermosas e interactivas.
-
-### Backend (API REST)
-- **Node.js & Express:** Entorno de ejecución y framework minimalista para las rutas del servidor.
-- **MySQL:** Base de datos relacional para almacenar las referencias y metadatos de los resultados médicos.
-- **JSON Web Token (JWT):** Para manejar la protección de las rutas (como la vista de uploader).
 - **Multer / body-parser:** Para poder receptar los archivos en formato multipart y guardarlos localmente en `uploads/`.
 
-## Requisitos Previos
-
-- Node.js (v16.x o superior recomendado).
-- npm o yarn.
 - Base de datos MySQL funcionando en tu máquina o red local.
 
 ## Configuración y Despliegue Local
-
-### 1. Backend
-En una terminal, dirígete a la carpeta `backend/` y realiza los siguientes pasos:
 ```bash
 cd backend
 npm install
@@ -79,3 +63,7 @@ npm run dev
 ## Notas Adicionales
 - Asegurate de mantener la carpeta `backend/uploads/` libre de seguimiento de versionado en tu `.gitignore` principal.
 - Por seguridad y en entornos de producción, el secreto en `JWT_SECRET` debe ser aleatorio y robusto.
+=======
+# ConsultaResultado
+Consulta de resultados pacientes Caminos IPS
+npm install
