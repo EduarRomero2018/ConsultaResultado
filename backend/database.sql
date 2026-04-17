@@ -38,7 +38,7 @@ IF NOT EXISTS `results`
 (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `document_type` ENUM
-('CC', 'PAS', 'TI', 'CE') NOT NULL,
+('CC', 'CE', 'TI', 'RC', 'PAS', 'PEP', 'PPT') NOT NULL,
   `document_number` VARCHAR
 (20) NOT NULL,
   `date_performed` DATE NOT NULL,
@@ -63,7 +63,7 @@ SET NULL
 //
 INSERT INTO results (document_type, document_number, date_performed, file_name, file_path, uploaded_by) VALUES
 //
-    ('CC', '123456789', '2024-01-15', 'resultado_123456789.pdf', '/uploads/resultado_123456789.pdf', 1)
+  ('CC', '123456789', '2024-01-15', 'resultado_123456789.pdf', '/uploads/resultado_123456789.pdf', 1)
 ;
 
 -- 4. Ejemplo de inserción de usuario administrador inicial (sin hash)

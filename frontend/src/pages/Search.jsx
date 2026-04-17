@@ -50,7 +50,9 @@ function Search() {
                                 onChange={e => setDocumentType(e.target.value)}
                             >
                                 {DOCUMENT_TYPES.map(dt => (
-                                    <option key={dt.value} value={dt.value}>{dt.label}</option>
+                                    <option key={dt.value} value={dt.value}>
+                                        {`${dt.value}: ${dt.label}`}
+                                    </option>
                                 ))}
                             </select>
                         </div>

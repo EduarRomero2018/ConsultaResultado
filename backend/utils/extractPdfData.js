@@ -16,8 +16,8 @@ export async function extractPdfData(filePath) {
     const text = content.items.map(item => item.str).join(' ');
 
     // Regex para extraer tipo, número y fecha (ajustar según formato real)
-    // Ejemplo: "CC 1234567890 2026-03-15"
-    const match = text.match(/(CC|PAS|TI|CE)\s*(\d{5,})\s*(\d{4}-\d{2}-\d{2})/);
+    // Ejemplo: "CE 123456789 2026-03-15"
+    const match = text.match(/(CC|CE|TI|RC|PAS|PEP|PPT)\s*([A-Za-z0-9-]{5,})\s*(\d{4}-\d{2}-\d{2})/);
     if (!match) throw new Error('No se pudo extraer datos del PDF');
     return {
         document_type: match[1],
