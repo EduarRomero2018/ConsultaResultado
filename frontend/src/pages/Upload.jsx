@@ -77,12 +77,12 @@ function Upload() {
                             <div className="mt-16 grid grid-cols-2 gap-8 opacity-80">
                                 <div className="flex items-center gap-2">
                                     <MdVerifiedUser className="text-lg text-white" />
-                                    <span className="text-xs font-medium">Protocolo HIPAA</span>
+                                    <span className="text-xs font-medium">Caminos IPS</span>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                {/* <div className="flex items-center gap-2">
                                     <RiLockPasswordLine className="text-lg text-white" />
                                     <span className="text-xs font-medium">Cifrado AES-256</span>
-                                </div>
+                                </div> */}
                             </div>
                         </div>
                     </section>
@@ -94,7 +94,7 @@ function Upload() {
                                     Bienvenido
                                 </h2>
                                 <p className="text-gray-500 font-sans">
-                                    Acceda a su cuenta para gestionar registros.
+                                    Acceda a su cuenta para cargar resultados.
                                 </p>
                             </div>
                             <form className="space-y-6" onSubmit={handleLogin}>
