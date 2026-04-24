@@ -61,7 +61,7 @@ function Upload() {
             <main className="flex min-h-screen items-center justify-center">
                 <div className="flex w-full max-w-7xl min-h-[50vh] rounded-3xl shadow-2xl overflow-hidden bg-white/0">
                     {/* Lado izquierdo: branding e ilustración */}
-                    <section className="hidden md:flex w-[52%] bg-[#2d2651] relative flex-col justify-center px-20 text-white min-h-full">
+                    <section className="hidden md:flex w-[52%] bg-institucion-primary relative flex-col justify-center px-20 text-white min-h-full">
                         <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-[#4b3fa7] opacity-60 blur-3xl" />
                         <div className="absolute -bottom-48 -right-24 w-[32rem] h-[32rem] rounded-full bg-[#1a1533] opacity-30 blur-3xl" />
                         <div className="relative z-10 max-w-lg">
