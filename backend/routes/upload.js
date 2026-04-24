@@ -1,5 +1,5 @@
 import express from 'express';
-import multer from 'multer';
+import multer from 'multer'; //Guarda el PDF
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -39,17 +39,18 @@ router.post('/', authRequired, upload.single('file'), async (req, res) => {
         const filePath = req.file.path;
         // Extraer datos del PDF
         const { document_type, document_number, date_performed } = await extractPdfData(filePath);
-        // Validar patrón de nombre de archivo
+        // Validar patrón de nombre de archivo, debe ser "TIPO_NUMERO.pdf"
         const expectedName = `${document_type}_${document_number}.pdf`;
         if (req.file.originalname !== expectedName) {
             return res.status(400).json({ error: `El archivo debe llamarse exactamente: ${expectedName}` });
         }
-        // Guardar en BD
+        // Guardar en BD siempre y cuando el cumple con el nombbre del archivo
         const relPath = path.relative(path.join(__dirname, '..'), filePath);
         const [result] = await pool.query(
             'INSERT INTO results (document_type, document_number, date_performed, file_name, file_path) VALUES (?, ?, ?, ?, ?)',
             [document_type, document_number, date_performed, req.file.originalname, relPath]
         );
+        //Si el Insert fue exitoso, responde con un success
         res.json({ success: true, file_id: result.insertId });
     } catch (err) {
         res.status(500).json({ error: err.message || 'Error al procesar el archivo' });
