@@ -9,7 +9,7 @@ function Login() {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    // Función para validar formato de correo electrónico
+    // Valida que el correo tenga un formato valido antes de enviar la peticion.
     const validateEmail = (email) => {
         return String(email)
             .toLowerCase()
@@ -18,10 +18,11 @@ function Login() {
             );
     };
 
+    // Envía credenciales al backend y guarda el token unificado.
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // 1. Validar que no esté vacío
+        // 1. Validar que no este vacio
         if (!email.trim()) {
             Swal.fire('Error', 'El correo electrónico es obligatorio', 'error');
             return;
@@ -43,8 +44,8 @@ function Login() {
             // Intentar login con el backend
             const { data } = await api.post('/api/auth/login', { email, password });
 
-            // Guardar token/sesión (ajustar según tu lógica de auth)
-            localStorage.setItem('token', data.token);
+            // Guardar token en sessionStorage para expirar al cerrar la pestaña.
+            sessionStorage.setItem('token', data.token);
 
             Swal.fire('Bienvenido', 'Inicio de sesión exitoso', 'success');
             navigate('/upload');
