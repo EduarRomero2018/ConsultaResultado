@@ -44,7 +44,23 @@ router.post('/', authRequired, upload.single('file'), async (req, res) => {
         if (req.file.originalname !== expectedName) {
             return res.status(400).json({ error: `El archivo debe llamarse exactamente: ${expectedName}` });
         }
-        // Guardar en BD siempre y cuando el cumple con el nombbre del archivo
+        // Verificar si ya existe un resultado para la misma fecha de realizacion
+        const [existing] = await pool.query(
+            'SELECT id FROM results WHERE document_type = ? AND document_number = ? AND date_performed = ? LIMIT 1',
+            [document_type, document_number, date_performed]
+        );
+        if (existing.length > 0) {
+            try {
+                fs.unlinkSync(filePath);
+            } catch (unlinkError) {
+                // Si no se puede borrar el archivo, se continua sin bloquear la respuesta.
+            }
+            return res.status(409).json({
+                error: `Este paciente ya tiene un resultado para la fecha, ${date_performed} !Favor Validar!`
+            });
+        }
+
+        // Guardar en BD siempre y cuando cumple con el nombre del archivo y no hay duplicado
         const relPath = path.relative(path.join(__dirname, '..'), filePath);
         const [result] = await pool.query(
             'INSERT INTO results (document_type, document_number, date_performed, file_name, file_path) VALUES (?, ?, ?, ?, ?)',
@@ -53,6 +69,11 @@ router.post('/', authRequired, upload.single('file'), async (req, res) => {
         //Si el Insert fue exitoso, responde con un success
         res.json({ success: true, file_id: result.insertId });
     } catch (err) {
+        if (err.code === 'ER_DUP_ENTRY') {
+            return res.status(409).json({
+                error: 'Este paciente ya tiene un resultado para esa fecha de realizacion'
+            });
+        }
         res.status(500).json({ error: err.message || 'Error al procesar el archivo' });
     }
 });
