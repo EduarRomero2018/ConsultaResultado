@@ -74,7 +74,7 @@ function Upload() {
                     />
                     <button
                         type="submit"
-                        className="bg-blue-700 text-white rounded px-4 py-2 hover:bg-blue-800"
+                        className="bg-institucion-primary text-white rounded px-4 py-2 hover:bg-institucion-secondary transition disabled:opacity-20"
                         disabled={loading}
                     >
                         {loading ? 'Subiendo...' : 'Subir PDF'}
