@@ -46,7 +46,7 @@ export async function extractPdfData(filePath) {
     // Regex para extraer tipo, número y fecha (ajustar según formato real)
     // Ejemplo: "CE 123456789 2026-03-15"
     const match = text.match(/(CC|CE|TI|RC|PAS|PEP|PPT)\s*([A-Za-z0-9-]{5,})\s*((?:\d{4}-\d{2}-\d{2})|(?:\d{1,2}\/\d{1,2}\/\d{4}))/i);
-    if (!match) throw new Error('No se pudo extraer datos del PDF');
+    if (!match) throw new Error('No se pudo extraer datos del PDF, Valida que el PDF contenga los campos necesarios.');
     return {
         document_type: match[1].toUpperCase(),
         document_number: match[2],
