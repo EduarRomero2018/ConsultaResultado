@@ -34,47 +34,80 @@ const upload = multer({
 });
 
 // POST /api/upload
-router.post('/', authRequired, upload.single('file'), async (req, res) => {
+router.post('/', authRequired, upload.array('files', 30), async (req, res) => {
     try {
-        const filePath = req.file.path;
-        // Extraer datos del PDF
-        const { document_type, document_number, date_performed } = await extractPdfData(filePath);
-        // Validar patrón de nombre de archivo, debe ser "TIPO_NUMERO.pdf"
-        const expectedName = `${document_type}_${document_number}.pdf`;
-        if (req.file.originalname !== expectedName) {
-            return res.status(400).json({ error: `El archivo debe llamarse exactamente: ${expectedName}` });
-        }
-        // Verificar si ya existe un resultado para la misma fecha de realizacion
-        const [existing] = await pool.query(
-            'SELECT id FROM results WHERE document_type = ? AND document_number = ? AND date_performed = ? LIMIT 1',
-            [document_type, document_number, date_performed]
-        );
-        if (existing.length > 0) {
-            try {
-                fs.unlinkSync(filePath);
-            } catch (unlinkError) {
-                // Si no se puede borrar el archivo, se continua sin bloquear la respuesta.
-            }
-            return res.status(409).json({
-                error: `Este paciente ya tiene un resultado para la fecha, ${date_performed} !Favor Validar!`
-            });
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({ error: 'No se recibieron archivos' });
         }
 
-        // Guardar en BD siempre y cuando cumple con el nombre del archivo y no hay duplicado
-        const relPath = path.relative(path.join(__dirname, '..'), filePath);
-        const [result] = await pool.query(
-            'INSERT INTO results (document_type, document_number, date_performed, file_name, file_path) VALUES (?, ?, ?, ?, ?)',
-            [document_type, document_number, date_performed, req.file.originalname, relPath]
-        );
-        //Si el Insert fue exitoso, responde con un success
-        res.json({ success: true, file_id: result.insertId });
-    } catch (err) {
-        if (err.code === 'ER_DUP_ENTRY') {
-            return res.status(409).json({
-                error: 'Este paciente ya tiene un resultado para esa fecha de realizacion'
-            });
+        const results = [];
+
+        for (const file of req.files) {
+            const filePath = file.path;
+            try {
+
+                //Valida que el PDF tenga el mismo nombre que el formato esperado, si no es así se borra el archivo y se devuelve un error específico para ese archivo.
+                const { document_type, document_number, date_performed } = await extractPdfData(filePath);
+                const expectedName = `${document_type}_${document_number}.pdf`;
+                if (file.originalname !== expectedName) {
+                    throw new Error(`El archivo NO cumple con el nombre esperado, debe llamarse exactamente: ${expectedName}`);
+                }
+                // Valida que no exista un resultado previo para el mismo paciente y fecha de realizacion, si existe se borra el archivo y se devuelve un error específico para ese archivo.
+                const [existing] = await pool.query(
+                    'SELECT id FROM results WHERE document_type = ? AND document_number = ? AND date_performed = ? LIMIT 1',
+                    [document_type, document_number, date_performed]
+                );
+                //Si la busqueda es mayor a 0, significa que ya existe un resultado para ese paciente y fecha, por lo tanto se lanza un error.
+                if (existing.length > 0) {
+                    throw new Error(`Este paciente ya tiene un resultado para la fecha ${date_performed}`);
+                }
+
+                const relPath = path.relative(path.join(__dirname, '..'), filePath);
+                const [result] = await pool.query(
+                    'INSERT INTO results (document_type, document_number, date_performed, file_name, file_path) VALUES (?, ?, ?, ?, ?)',
+                    [document_type, document_number, date_performed, file.originalname, relPath]
+                );
+
+                results.push({
+                    file_name: file.originalname,
+                    status: 'ok',
+                    file_id: result.insertId,
+                });
+            } catch (err) {
+                try {
+                    fs.unlinkSync(filePath);
+                } catch (unlinkError) {
+                    // Si no se puede borrar el archivo, se continua sin bloquear la respuesta.
+                }
+
+                const message = err.code === 'ER_DUP_ENTRY'
+                    ? 'Este paciente ya tiene un resultado para esa fecha de realizacion'
+                    : err.message || 'Error al procesar el archivo';
+
+                results.push({
+                    file_name: file.originalname,
+                    status: 'error',
+                    message,
+                });
+            }
         }
-        res.status(500).json({ error: err.message || 'Error al procesar el archivo' });
+
+        const summary = results.reduce(
+            (acc, item) => {
+                acc.total += 1;
+                if (item.status === 'ok') {
+                    acc.success += 1;
+                } else {
+                    acc.failed += 1;
+                }
+                return acc;
+            },
+            { total: 0, success: 0, failed: 0 }
+        );
+
+        res.json({ results, summary });
+    } catch (err) {
+        res.status(500).json({ error: err.message || 'Error al procesar los archivos' });
     }
 });
 
