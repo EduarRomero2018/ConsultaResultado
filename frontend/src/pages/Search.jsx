@@ -26,7 +26,16 @@ function Search() {
             });
             setResults(data);
             if (data.length === 0) {
-                Swal.fire('Sin resultados', 'No se encontraron resultados para este documento', 'info');
+
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Sin resultados',
+                    text: 'No se encontraron resultados para este documento',
+                    timer: 5000,
+                    timerProgressBar: true,
+                    // showConfirmButton: true,
+                    // confirmButtonText: 'OK',
+                });
             }
         } catch (err) {
             Swal.fire('Error', err.response?.data?.error || 'Error al buscar resultados', 'error');
