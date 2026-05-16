@@ -3,6 +3,10 @@ import { Link, useLocation } from 'react-router-dom';
 
 function Navbar() {
     const location = useLocation();
+    const token = sessionStorage.getItem('token');
+    const handleLogout = () => {
+        sessionStorage.removeItem('token');
+    };
 
     const isActive = (path) => location.pathname === path;
 
@@ -25,24 +29,37 @@ function Navbar() {
                 </h1>
 
                 <nav className="ml-auto flex items-center gap-4">
-                    <Link
-                        to="/search"
-                        className={`px-3 py-1 rounded transition-colors ${isActive('/search')
-                            ? 'bg-white text-blue-700 font-semibold'
-                            : 'hover:bg-indigo-600'
-                            }`}
-                    >
-                        Buscar
-                    </Link>
-                    <Link
-                        to="/upload"
-                        className={`px-3 py-1 rounded transition-colors ${isActive('/upload')
-                            ? 'bg-white text-blue-700 font-semibold'
-                            : 'hover:bg-blue-600'
-                            }`}
-                    >
-                        Subir
-                    </Link>
+                    {token && (
+                        <Link
+                            to="/search"
+                            className={`px-3 py-1 rounded transition-colors ${isActive('/search')
+                                ? 'bg-white text-blue-700 font-semibold'
+                                : 'hover:bg-indigo-600'
+                                }`}
+                        >
+                            Buscar
+                        </Link>
+                    )}
+                    {token && (
+                        <Link
+                            to="/upload"
+                            className={`px-3 py-1 rounded transition-colors ${isActive('/upload')
+                                ? 'bg-white text-blue-700 font-semibold'
+                                : 'hover:bg-blue-600'
+                                }`}
+                        >
+                            Subir
+                        </Link>
+                    )}
+                    {token && (
+                        <Link
+                            to="/login"
+                            className="px-3 py-1 rounded border border-white/70 text-white/90 hover:bg-white hover:text-[#2d2651] transition-colors"
+                            onClick={handleLogout}
+                        >
+                            Cerrar sesión
+                        </Link>
+                    )}
                 </nav>
             </div>
         </header>
