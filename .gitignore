@@ -33,3 +33,4 @@ backend/database.sqlite
 backend/database.db
 *.sqlite
 *.db
+.agents/

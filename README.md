@@ -1,69 +1,96 @@
-<<<<<<< HEAD
-# Proyecto: Consulta de Resultados de Electro
+# Proyecto: ConsultaResultado
 
-Este es un sistema web (Cliente-Servidor) diseñado para permitir la carga y consulta de resultados médicos (específicamente electrocardiogramas o estudios similares en formato PDF). Está compuesto por un **Frontend** desarrollado en React y un **Backend** desarrollado con Node.js y Express apoyado por una base de datos MySQL.
+Sistema web cliente-servidor para la **consulta y carga de resultados médicos en PDF** (electrocardiogramas y estudios similares) para **Caminos IPS**. El frontend está desarrollado en **React** y el backend en **Node.js/Express** con base de datos **MySQL**.
 
+## Estructura del repositorio
 
-El repositorio está dividido en tres carpetas principales:
+- **`backend/`**: API REST, lógica de negocio y procesamiento de PDFs.
+- **`frontend/`**: SPA para pacientes y personal administrativo.
+- **`.github/`**: Archivos de soporte para la documentación del proyecto.
 
-- **`backend/`**: Contiene todo el código del servidor, la API RESTful y la lógica de negocio.
-- **`frontend/`**: Contiene la interfaz de usuario interactiva (SPA) orientada tanto a administradores como a pacientes.
-- **`.github/`**: Puede contener configuraciones para acciones de GitHub (CI/CD) si aplica en el futuro.
+## Funcionalidades principales
 
-## Funcionalidades Principales
-3. **Consulta Libre de Resultados:** Una página pública (`Search.jsx`) donde el usuario final puede buscar sus resultados introduciendo su tipo y número de documento.
-4. **Descarga Segura:** Endpoint para que los usuarios puedan previsualizar y descargar el documento PDF original que fue cargado por la IPS o médico.
+- **Carga de resultados (admin):** Subida de PDF con validación del nombre del archivo y extracción de datos del documento.
+- **Consulta pública:** Búsqueda por tipo y número de documento.
+- **Descarga:** Acceso al PDF almacenado en el servidor.
 
-## Tecnologías Utilizadas
+## Tecnologías
 
-### Frontend (User Interface)
-- **React (v18.2):** Biblioteca principal para construir la interfaz.
-- **Vite:** Herramienta de compilación rápida (Build tool) y servidor de desarrollo.
-- **Tailwind CSS:** Framework utilitario para los estilos responsivos e interfaz moderna.
-- **React Router Dom:** Manejo de rutas internas (`Search`, `Upload`, etc).
-- **Axios:** Para el consumo de endpoints del backend.
-- **Multer / body-parser:** Para poder receptar los archivos en formato multipart y guardarlos localmente en `uploads/`.
+### Frontend
+- **React 18** + **Vite**
+- **Tailwind CSS**
+- **React Router**
+- **Axios**
 
-- Base de datos MySQL funcionando en tu máquina o red local.
+### Backend
+- **Node.js / Express**
+- **MySQL**
+- **Multer** (subida de archivos)
+- **pdfjs-dist** (extracción de datos desde PDF)
+- **JWT** (autenticación)
 
-## Configuración y Despliegue Local
+## Configuración local
+
+### 1. Backend
 ```bash
 cd backend
 npm install
 ```
-Asegúrate de revisar/crear el archivo `.env` configurando tus accesos de base de datos MySQL y el puerto:
+
+Crea el archivo `backend/.env` con tus credenciales (según `backend/README.md`):
 ```env
 DB_HOST=localhost
 DB_USER=root
-DB_PASSWORD=tu_password
-DB_NAME=electro_ips
+DB_PASS=tu_password
+DB_NAME=resultados_electro
 JWT_SECRET=tu_secreto_seguro
-PORT=5000
+PORT=5050
 ```
-Crea la base de datos `electro_ips` y la tabla en MySQL de acuerdo con el `backend/README.md`. Luego, lanza el servidor local en desarrollo:
+
+Importa el esquema de base de datos:
+```bash
+mysql -u tu_usuario -p < database.sql
+```
+
+Inicia el servidor:
 ```bash
 npm run dev
 ```
 
 ### 2. Frontend
-En otra terminal, ve a la carpeta `frontend/`:
 ```bash
 cd frontend
 npm install
-```
-Levanta el servidor con Vite (por defecto corre en `http://localhost:5173`):
-```bash
 npm run dev
 ```
 
-## Estructura de Rutas
-* **Frontend:** `/` (Búsqueda de resultados), `/upload` (Carga de resultados protegida).
-* **Backend:** `/api/auth/*` (Manejo de acceso admin), `/api/upload` (subida de archivos), `/api/results` (búsqueda de pacientes), `/api/download/:file_id` (Stream y descarga de PDF).
+Vite corre por defecto en `http://localhost:5173` y consume la API en `http://localhost:5050`.
 
-## Notas Adicionales
-- Asegurate de mantener la carpeta `backend/uploads/` libre de seguimiento de versionado en tu `.gitignore` principal.
-- Por seguridad y en entornos de producción, el secreto en `JWT_SECRET` debe ser aleatorio y robusto.
-=======
-# ConsultaResultado
-Consulta de resultados pacientes Caminos IPS
-npm install
+## Reglas para el cargue de PDFs (modo estricto)
+
+- **Nombre obligatorio:** el archivo debe llamarse exactamente `TIPO_NUMERO.pdf`.
+  - Ejemplos válidos: `CC_123456789.pdf`, `TI_987654321.pdf`.
+  - Si el nombre no coincide con los datos del PDF, el cargue es rechazado.
+- **Contenido mínimo del PDF:** debe incluir como mínimo:
+  - **Tipo de documento**
+  - **Número de documento**
+  - **Fecha de realización**
+- **Validación de duplicados:** no se permite más de un resultado con la misma combinación:
+  - **tipo + número + fecha de realización**
+  - Si existe un registro igual, el sistema mostrará una alerta y no cargará el archivo.
+
+## Buenas prácticas de operación
+
+- Verifica que el nombre del archivo coincida con el tipo y número reales del PDF.
+- Sube los archivos en lotes (máximo 30 PDFs por carga).
+- Revisa el resumen de carga para identificar archivos fallidos.
+
+## Rutas principales
+
+- **Frontend**: `/search` (consulta), `/upload` (carga), `/login` (acceso admin)
+- **Backend**: `/api/auth/*`, `/api/upload`, `/api/results`, `/api/download/:file_id`
+
+## Notas
+
+- La carpeta `backend/uploads/` no debe versionarse (ya está en `.gitignore`).
+- En producción, `JWT_SECRET` debe ser robusto y privado.
