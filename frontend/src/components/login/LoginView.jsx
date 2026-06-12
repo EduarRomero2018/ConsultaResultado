@@ -9,6 +9,8 @@ function LoginView({
     onPasswordChange,
     onSubmit,
 }) {
+    // Retorna el formulario de inicio de sesión con inputs de correo y contraseña,
+    // botón de envío y una imagen decorativa lateral.
     return (
         <main className="flex flex-col items-center justify-start px-4 py-8">
             <div className="flex max-w-6xl min-h-[64vh] overflow-hidden rounded-3xl shadow-2xl bg-white/0">
