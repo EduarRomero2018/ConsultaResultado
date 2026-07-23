@@ -12,27 +12,30 @@ function Navbar() {
 
     return (
         <header className="bg-institucion-primary text-white shadow-xl">
-            <div className="max-w-6xl mx-auto relative flex items-center px-4 py-3">
-                <div className="flex items-center">
+            <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between px-4 py-3 gap-3 md:gap-0 md:relative">
+                {/* Primera Fila en móvil / Izquierda en escritorio */}
+                <div className="flex items-center justify-center w-full md:w-auto md:justify-start">
                     <img
                         src="/images/Caminos.png"
                         alt="Logo Caminos"
-                        className="h-10 w-auto"
+                        className="h-8 md:h-10 w-auto"
                     />
-                    <span className="pl-[5px]  font-semibold md:text-base text-lg">
+                    <span className="pl-[5px] font-semibold text-lg md:text-base">
                         Caminos IPS
                     </span>
                 </div>
 
-                <h1 className="absolute left-1/2 -translate-x-1/2 text-lg md:text-xl font-bold tracking-wide text-center">
+                {/* Segunda Fila en móvil / Centro en escritorio */}
+                <h1 className="text-center text-lg md:text-lg lg:text-xl font-bold tracking-wide md:absolute md:left-1/2 md:-translate-x-1/2 md:top-1/2 md:-translate-y-1/2 w-full md:w-auto">
                     Consulta de Resultados
                 </h1>
 
-                <nav className="ml-auto flex items-center gap-4">
+                {/* Tercera Fila en móvil / Derecha en escritorio */}
+                <nav className="flex items-center justify-center gap-2 md:gap-4 w-full md:w-auto md:ml-auto">
                     {token && (
                         <Link
                             to="/search"
-                            className={`px-3 py-1 rounded transition-colors ${isActive('/search')
+                            className={`px-3 py-1 text-xs md:text-sm rounded transition-colors ${isActive('/search')
                                 ? 'bg-white text-blue-700 font-semibold'
                                 : 'hover:bg-indigo-600'
                                 }`}
@@ -43,7 +46,7 @@ function Navbar() {
                     {token && (
                         <Link
                             to="/upload"
-                            className={`px-3 py-1 rounded transition-colors ${isActive('/upload')
+                            className={`px-3 py-1 text-xs md:text-sm rounded transition-colors ${isActive('/upload')
                                 ? 'bg-white text-blue-700 font-semibold'
                                 : 'hover:bg-blue-600'
                                 }`}
@@ -54,7 +57,7 @@ function Navbar() {
                     {token && (
                         <Link
                             to="/login"
-                            className="px-3 py-1 rounded border border-white/70 text-white/90 hover:bg-white hover:text-[#2d2651] transition-colors"
+                            className="px-3 py-1 text-xs md:text-sm rounded border border-white/70 text-white/90 hover:bg-white hover:text-[#2d2651] transition-colors"
                             onClick={handleLogout}
                         >
                             Cerrar sesión
