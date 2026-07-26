@@ -8,7 +8,11 @@ function Footer() {
             <div className="mx-auto max-w-7xl grid grid-cols-3 items-center">
                 <span className="justify-self-start font-semibold">V1.3</span>
                 <p className="justify-self-center text-center">&copy; {currentYear} Caminos IPS. Todos los derechos reservados.</p>
-                <span className="justify-self-end" aria-hidden="true"></span>
+                <img
+                    src="/images/Logo vigilado Supersalud.png"
+                    alt="Vigilado Supersalud"
+                    className="justify-self-end h-8 w-auto"
+                />
             </div>
         </footer>
     );
