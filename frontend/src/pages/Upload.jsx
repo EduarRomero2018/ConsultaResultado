@@ -27,6 +27,7 @@ function Upload() {
         setUploadProgress(0);
     };
 
+    // Normaliza la lista de archivos entrantes, filtrando solo PDFs, eliminando duplicados y limitando a 30 archivos.
     const normalizeFiles = (fileList) => {
         const incoming = Array.from(fileList || []);
         const onlyPdf = incoming.filter(file => file.type === 'application/pdf');
