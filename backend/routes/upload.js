@@ -7,6 +7,7 @@ import { uploadToS3 } from '../utils/s3.js';
 
 const router = express.Router();
 
+// Configuración de Multer para manejar la carga de archivos en memoria, se limita a 20MB por archivo y se filtran solo archivos PDF
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: { fileSize: 20 * 1024 * 1024 }, // 20MB por archivo
