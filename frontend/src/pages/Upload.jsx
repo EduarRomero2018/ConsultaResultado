@@ -4,6 +4,10 @@ import api from '../utils/api';
 import Swal from 'sweetalert2';
 import UploadView from '../components/upload/UploadView';
 
+// Peso máximo permitido por archivo PDF (en MB). Debe coincidir con el
+// limits.fileSize configurado en Multer, backend/routes/upload.js.
+const MAX_FILE_SIZE_MB = 20;
+
 function Upload() {
     // Estado de autenticacion: se lee desde sessionStorage para expirar al cerrar pestaña.
     const [token, setToken] = useState(sessionStorage.getItem('token') || '');
@@ -26,8 +30,20 @@ function Upload() {
     const normalizeFiles = (fileList) => {
         const incoming = Array.from(fileList || []);
         const onlyPdf = incoming.filter(file => file.type === 'application/pdf');
+
+        const maxBytes = MAX_FILE_SIZE_MB * 1024 * 1024;
+        const oversized = onlyPdf.filter(file => file.size > maxBytes);
+        const withinLimit = onlyPdf.filter(file => file.size <= maxBytes);
+        if (oversized.length > 0) {
+            Swal.fire(
+                'Archivo demasiado grande',
+                `No se pudo cargar: ${oversized.map(file => file.name).join(', ')}. El peso supera el máximo permitido de ${MAX_FILE_SIZE_MB}MB por archivo.`,
+                'warning'
+            );
+        }
+
         const unique = new Map(files.map(file => [file.name, file]));
-        onlyPdf.forEach(file => unique.set(file.name, file));
+        withinLimit.forEach(file => unique.set(file.name, file));
         const merged = Array.from(unique.values());
         if (merged.length > 30) {
             Swal.fire('Límite excedido', 'Solo se permiten hasta 30 archivos por lote', 'warning');
