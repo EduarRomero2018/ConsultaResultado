@@ -1,5 +1,4 @@
 // Archivo para extraer datos de un PDF usando pdfjs-dist
-import fs from 'fs';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 
 function normalizeDateToISO(rawDate) {
@@ -21,11 +20,11 @@ function normalizeDateToISO(rawDate) {
 /**
  * Extrae el tipo de documento, número y fecha desde el texto del PDF.
  * Se asume que el texto relevante está en la parte superior del PDF.
- * @param {string} filePath - Ruta absoluta al archivo PDF
+ * @param {Buffer} buffer - Contenido del PDF en memoria
  * @returns {Promise<{document_type: string, document_number: string, date_performed: string}>}
  */
-export async function extractPdfData(filePath) {
-    const data = new Uint8Array(fs.readFileSync(filePath));
+export async function extractPdfData(buffer) {
+    const data = new Uint8Array(buffer);
     const pdf = await pdfjsLib.getDocument({ data }).promise;
     const page = await pdf.getPage(1);
     const content = await page.getTextContent();

@@ -1,12 +1,12 @@
 -- Consolidado de Scripts de Base de Datos - Proyecto ConsultaResultado
--- Base de datos: electro_ips
+-- Base de datos: resultados_electro (debe coincidir con DB_NAME en backend/.env)
 
 -- 1. Creación de la base de datos
 CREATE DATABASE
-IF NOT EXISTS `electro_ips` CHARACTER
+IF NOT EXISTS `resultados_electro` CHARACTER
 SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
-USE `electro_ips`;
+USE `resultados_electro`;
 
 -- 2. Tabla de Usuarios (Administradores/Staff)
 -- Esta tabla permite que los administradores se autentiquen para cargar archivos.
@@ -60,18 +60,13 @@ DELETE
 SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-//
-INSERT INTO results (document_type, document_number, date_performed, file_name, file_path, uploaded_by) VALUES
-//
-  ('CC', '123456789', '2024-01-15', 'resultado_123456789.pdf', '/uploads/resultado_123456789.pdf', 1)
-;
+-- Sugerido (opcional, no bloqueante): cierra la condición de carrera de duplicados,
+-- que hoy depende solo de una verificación en la aplicación antes del INSERT.
+-- ALTER TABLE `results` ADD UNIQUE KEY `uq_document_date` (`document_type`, `document_number`, `date_performed`);
 
--- 4. Ejemplo de inserción de usuario administrador inicial (sin hash)
-INSERT INTO `users` (`
-full_name`,
-`email
-`, `password`, `role`) VALUES
-('Administrador Principal', 'admin@ejemplo.com', 'Caminos2026', 'admin');
-
--- Puedes generar tu propio hash con bcrypt para mayor seguridad.
+-- 4. Ejemplo de inserción de usuario administrador inicial (plantilla, no ejecutar tal cual).
+-- Sustituye el email y la contraseña por valores reales antes de correr este INSERT;
+-- no dejes credenciales reales en este archivo versionado en git.
+-- INSERT INTO `users` (`full_name`, `email`, `password`, `role`) VALUES
+-- ('Administrador Principal', 'admin@ejemplo.com', 'defineme', 'admin');
 
