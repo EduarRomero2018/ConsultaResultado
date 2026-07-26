@@ -25,8 +25,9 @@ Esta es una aplicación full-stack dividida en directorios frontend (React/Vite)
 - **Node.js** con **Express.js** (módulos ES)
 - Base de datos **MySQL** con driver mysql2
 - **JWT** (jsonwebtoken) para autenticación
-- **Multer** para manejo de carga de archivos
+- **Multer** para manejo de carga de archivos (memoria, sin escribir a disco)
 - **pdfjs-dist** para extracción de texto/metadatos de PDFs
+- **AWS SDK v3** (`@aws-sdk/client-s3`, `@aws-sdk/s3-request-presigner`) para almacenamiento de PDFs en S3
 - **dotenv** para configuración de entorno
 
 ## Estructura de Directorios
@@ -39,17 +40,18 @@ root/
 │   │   ├── components/      # Componentes reutilizables (Navbar, Footer, ResultsTable)
 │   │   ├── utils/           # Utilidades compartidas
 │   │   └── App.jsx          # Configuración de rutas
-│   ├── index.html
-│   └── vite.config.js
+│   └── index.html
 ├── backend/                  # Servidor API Express
 │   ├── routes/              # Endpoints de API (auth, upload, results, download)
 │   ├── middleware/          # Middleware de autenticación JWT
-│   ├── utils/               # Funciones auxiliares
-│   ├── uploads/             # Almacenamiento de PDFs cargados (ignorado por git)
+│   ├── utils/               # Funciones auxiliares (db.js, extractPdfData.js, s3.js)
+│   ├── ecosystem.config.cjs # Configuración de PM2 para producción
 │   ├── server.js            # Configuración de aplicación Express
 │   ├── database.sql         # Inicialización de esquema
 │   └── .env                 # Variables de entorno (ignorado por git)
-└── README.md                # Documentación del proyecto
+├── deploy/                   # Configuración de referencia de Nginx para producción
+├── .github/workflows/        # Pipeline de despliegue automático (CI/CD)
+└── README.md                 # Documentación del proyecto
 ```
 
 ## Tareas Comunes de Desarrollo
@@ -93,6 +95,13 @@ DB_NAME=resultados_electro
 JWT_SECRET=<clave-secreta-robusta>
 PORT=5050
 NODE_ENV=development
+
+# AWS S3
+AWS_REGION=us-east-1
+AWS_S3_BUCKET=<nombre-del-bucket>
+# Solo si no hay IAM role asociado a la instancia:
+# AWS_ACCESS_KEY_ID=
+# AWS_SECRET_ACCESS_KEY=
 ```
 
 La URL de API del frontend está codificada en `http://localhost:5050` en instancias de axios.
@@ -106,7 +115,7 @@ Todos los endpoints tienen prefijo `/api/`:
 | `/auth/login` | POST | No | Autenticación de administrador (devuelve JWT) |
 | `/upload` | POST | JWT | Cargar PDF con validación |
 | `/results` | GET | No | Buscar resultados por tipo y número de documento |
-| `/download/:file_id` | GET | No | Descargar PDF por ID de archivo |
+| `/download/:file_id` | GET | No | Genera y devuelve una URL prefirmada de S3 (`{ url, file_name }`), no el binario |
 
 **Autenticación JWT**: Almacena token en `localStorage` (clave: `authToken`). Pasa encabezado `Authorization: Bearer <token>` para rutas protegidas.
 
@@ -116,18 +125,17 @@ El sistema de carga aplica reglas estrictas:
 - **Formato de nombre**: `TIPO_NUMERO.pdf` (ej: `CC_123456789.pdf`, `TI_987654321.pdf`)
 - **Contenido PDF requerido**: Tipo, número y fecha del examen extraídos del documento
 - **Verificación de duplicados**: No se permiten duplicados para combinación (tipo + número + fecha)
-- **Límite de lote**: Máx ~30 PDFs por carga para rendimiento de UI
+- **Límite de lote**: Máx 30 PDFs por carga, 20MB por archivo (`limits.fileSize` en Multer)
 
-Backend extrae texto PDF usando pdfjs-dist y valida contra nombre de archivo; rechaza inconsistencias.
+Backend extrae texto PDF usando pdfjs-dist (desde el buffer en memoria, sin tocar disco) y valida contra nombre de archivo; rechaza inconsistencias. Solo si la validación y la verificación de duplicados pasan, el archivo se sube a S3.
 
 ## Esquema de Base de Datos
 
 Tablas clave (ver `backend/database.sql` para esquema completo):
-- **users**: Credenciales de administrador con hash de contraseña
-- **results**: Metadatos extraídos (tipo, número, fecha, ID de archivo)
-- **uploads**: Registro de auditoría de operaciones de carga
+- **users**: Credenciales de administrador (actualmente comparadas en texto plano, no hasheadas pese al comentario del script — ver `routes/auth.js`)
+- **results**: Metadatos extraídos (tipo, número, fecha, nombre de archivo, key de S3 en la columna `file_path`)
 
-Tipos de documento: CC (Cédula), TI (Tarjeta Identidad), PA (Pasaporte), CE (Cédula Extranjería), etc.
+Tipos de documento: CC, CE, TI, RC, PAS, PEP, PPT (ENUM en la tabla `results`).
 
 ## Rutas del Frontend
 
@@ -147,25 +155,30 @@ Navbar muestra login/logout según presencia de token en localStorage.
 4. Middleware `authRequired` en backend valida token en endpoint de carga
 
 ### Procesamiento de PDF
-- Frontend: Multer recibe archivo → backend extrae texto con pdfjs-dist
-- Validación: Tipo/número extraído se compara contra nombre de archivo
-- Almacenamiento: Cargas exitosas se guardan en `backend/uploads/` con nombres basados en UUID
-- Recuperación: Endpoint de descarga transmite archivo desde disco
+- Multer recibe el archivo en memoria (`memoryStorage`, sin escribir a disco) → backend extrae texto con pdfjs-dist desde el buffer
+- Validación: tipo/número extraído se compara contra nombre de archivo; se verifica duplicado en BD
+- Almacenamiento: solo si pasa validación y no es duplicado, se sube a S3 con key `results/{tipo}_{numero}_{fecha}.pdf` (determinística, evita colisiones entre distintos estudios del mismo paciente)
+- Recuperación: el endpoint de descarga genera una URL prefirmada de S3 (expiración corta) en vez de transmitir el binario
 
 ### Gestión de Estado del Frontend
 Sin librería de estado global (Redux, Zustand). Cada componente de página gestiona estado local con useState/useEffect; interceptores de Axios manejan lógica HTTP común.
 
+## Despliegue
+
+Cada push a `main` dispara `.github/workflows/deploy.yml`: construye el frontend en el runner de GitHub, lo copia por SCP al servidor, y por SSH hace `git pull` + `npm ci --omit=dev` + `pm2 restart consulta-resultado-api` en el backend. Requiere los secrets `SSH_HOST`, `SSH_USER`, `SSH_PRIVATE_KEY` en el repo. En producción, Nginx sirve el frontend estático y hace proxy reverso de `/api/*` al backend (mismo origen, ver `deploy/nginx.conf.example`) — por eso `VITE_API_URL` se deja vacío en el build de producción (rutas relativas).
+
 ## Notas Importantes
 
-- Directorio `backend/uploads/` está ignorado por git; no hagas commit de archivos cargados
-- JWT_SECRET debe cambiar en producción (actualmente en README como ejemplo)
-- CORS del frontend está configurado para aceptar solo `http://localhost:5173`; actualiza `server.js` para dominios de producción
+- JWT_SECRET y credenciales AWS deben ser robustas y privadas en producción (nunca comprometidas en git; `.env` está ignorado)
+- CORS del backend está configurado para aceptar solo `http://localhost:5173` (dev); en producción no aplica porque Nginx sirve frontend y backend bajo el mismo origen
 - Extracción de PDF depende de capa de texto pdfjs-dist; imágenes escaneadas o PDFs corruptos pueden fallar
+- `client_max_body_size` en Nginx debe cubrir un LOTE completo (hasta 30 archivos), no solo un PDF individual — ver el comentario en `deploy/nginx.conf.example`
 - Sin tests actualmente; archivos de test irían en `frontend/__tests__` y `backend/__tests__`
 
 ## Consejos de Depuración
 
-- ¿Backend no responde? Verifica que `.env` existe y `npm run dev` está ejecutándose
+- ¿Backend no responde? Verifica que `.env` existe y `npm run dev` está ejecutándose (local) o `pm2 status` (producción)
 - ¿Frontend no puede hacer login? Revisa consola del navegador para errores CORS; verifica puerto backend es 5050
 - ¿Falla carga de PDF? Verifica que nombre de archivo coincida con `TIPO_NUMERO.pdf` y PDF contiene campos requeridos
+- ¿Carga falla sin ningún log en el backend? Revisa `client_max_body_size` en Nginx — un request rechazado ahí nunca llega a Express
 - ¿Errores de conexión a base de datos? Verifica que MySQL está ejecutándose y credenciales en `.env` son correctas
