@@ -1,7 +1,9 @@
 // Configuración de PM2 para producción.
-// Uso inicial (una sola vez, en el servidor): pm2 start ecosystem.config.js && pm2 save
+// .cjs a propósito: backend/package.json tiene "type": "module", y PM2 no
+// resuelve de forma confiable un ecosystem.config.js con "export default" ESM.
+// Uso inicial (una sola vez, en el servidor): pm2 start ecosystem.config.cjs && pm2 save
 // Despliegues posteriores (vía CI/CD): pm2 restart consulta-resultado-api
-export default {
+module.exports = {
     apps: [
         {
             name: 'consulta-resultado-api',
