@@ -6,10 +6,12 @@ server {
     listen 80;
     server_name tu-dominio-o-ip;
 
-    # Nginx por defecto limita el body a 1MB, muy por debajo del límite de 20MB/archivo
-    # que ya valida Multer en el backend. Sin esto, cualquier PDF > 1MB se rechaza en
-    # Nginx (413) antes de llegar a Express, sin dejar rastro en los logs del backend.
-    client_max_body_size 50m;
+    # Nginx por defecto limita el body a 1MB. Esto debe cubrir un LOTE completo
+    # (hasta 30 PDFs por request, ver upload.array('files', 30) en upload.js), no un
+    # solo archivo: 30 archivos de ~5MB ya suman 150MB. Multer limita cada archivo
+    # individual a 20MB como segunda capa de protección de memoria (memoryStorage
+    # guarda el lote completo en RAM antes de procesarlo).
+    client_max_body_size 150m;
 
     root /var/www/consultaresultado/frontend/dist;
     index index.html;
