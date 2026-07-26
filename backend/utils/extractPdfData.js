@@ -52,8 +52,3 @@ export async function extractPdfData(buffer) {
         date_performed: normalizeDateToISO(match[3])
     };
 }
-
-//PROMT
-// Ok, entendido, actualmente me devuelve un error y no se inserta en la BD porque el PDF internamente no cuenta con el mismo nombre de variables, te voy a pasar el nombre de las variables que estan en el PDF, para que hagas el cambio, teniendo en cuenta que el busca en el PDF #sym:expectedName , #sym:document_type y #sym:document_number .
-// las varables del PDF son:
-// Cli No -> el valor que encuentre aqui es el tipo
