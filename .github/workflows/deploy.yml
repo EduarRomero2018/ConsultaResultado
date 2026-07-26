@@ -1,0 +1,67 @@
+name: Deploy a Lightsail
+
+on:
+  push:
+    branches: [main]
+
+env:
+  DEPLOY_PATH: /var/www/consultaresultado
+  PM2_APP_NAME: consulta-resultado-api
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar y construir frontend
+        working-directory: frontend
+        env:
+          # Vacío a propósito: en producción frontend y backend comparten
+          # origen vía Nginx, así que las rutas relativas ("/api/...") bastan.
+          VITE_API_URL: ''
+        run: |
+          npm ci
+          npm run build
+
+      - name: Copiar build del frontend al servidor
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: 'frontend/dist/*'
+          target: ${{ env.DEPLOY_PATH }}/frontend_dist_new
+          strip_components: 2
+          overwrite: true
+
+      - name: Desplegar backend y reiniciar servicio
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd "${{ env.DEPLOY_PATH }}"
+
+            # Backend: se actualiza vía git pull (no se copian archivos, así
+            # nunca se toca backend/.env, que no está versionado).
+            git pull origin main
+
+            cd backend
+            npm ci --omit=dev
+
+            # Solo si el build/instalación anteriores tuvieron éxito se
+            # reemplaza el frontend servido y se reinicia el backend, evitando
+            # que un despliegue roto tumbe la versión que sigue en producción.
+            rm -rf "${{ env.DEPLOY_PATH }}/frontend/dist"
+            mv "${{ env.DEPLOY_PATH }}/frontend_dist_new" "${{ env.DEPLOY_PATH }}/frontend/dist"
+
+            pm2 restart "${{ env.PM2_APP_NAME }}"
