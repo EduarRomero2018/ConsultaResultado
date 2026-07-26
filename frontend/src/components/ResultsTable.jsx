@@ -11,18 +11,10 @@ function ResultsTable({ results }) {
         return datePart;
     };
 
-    const handleDownload = async (file_id, file_name) => {
+    const handleDownload = async (file_id) => {
         try {
-            const response = await api.get(`/api/download/${file_id}`, {
-                responseType: 'blob',
-            });
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', file_name);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
+            const { data } = await api.get(`/api/download/${file_id}`);
+            window.location.href = data.url;
         } catch (err) {
             Swal.fire('Error', 'No se pudo descargar el archivo', 'error');
         }
@@ -46,7 +38,7 @@ function ResultsTable({ results }) {
                             <td className="border border-[#f0ecfa] px-4 py-3 text-center">
                                 <button
                                     className="mx-auto inline-flex items-center gap-2 rounded-lg border border-[#d8d1f0] bg-[#f7f5fc] px-3 py-2 text-sm font-semibold text-[#2d2651] transition-all hover:bg-[#ece7fa] hover:border-[#c8bee9]"
-                                    onClick={() => handleDownload(r.id, r.file_name)}
+                                    onClick={() => handleDownload(r.id)}
                                     title="Descargar PDF"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" /></svg>
