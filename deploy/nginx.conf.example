@@ -1,9 +1,17 @@
 # Configuración de referencia para Nginx en el servidor Lightsail.
 # Copiar a /etc/nginx/sites-available/consultaresultado y enlazar en sites-enabled,
-# ajustando `server_name` al dominio/IP real.
+# ajustando `server_name` al dominio real.
+#
+# HTTPS: una vez el DNS del dominio apunte al servidor, correr:
+#   sudo apt install certbot python3-certbot-nginx
+#   sudo certbot --nginx -d tu-dominio.com --redirect
+# Certbot agrega automáticamente el bloque `listen 443 ssl` (con las líneas
+# `ssl_certificate`/`ssl_certificate_key`/etc. marcadas "# managed by Certbot")
+# y un segundo server{} en el puerto 80 que redirige a HTTPS con 301 — no hace
+# falta escribirlos a mano aquí. También instala un timer systemd
+# (`certbot.timer`) que renueva el certificado automáticamente dos veces al día.
 
 server {
-    listen 80;
     server_name tu-dominio-o-ip;
 
     # Nginx por defecto limita el body a 1MB. Esto debe cubrir un LOTE completo
@@ -31,4 +39,9 @@ server {
     location / {
         try_files $uri /index.html;
     }
+
+    listen 80;
+    # Tras correr certbot, esta línea la reemplaza por:
+    #   listen 443 ssl; # managed by Certbot
+    # y agrega las directivas ssl_certificate/ssl_dhparam debajo (ver nota arriba).
 }

@@ -119,7 +119,7 @@ function Upload() {
             } else {
 
                 Swal.fire({
-                    icon: 'Success',
+                    icon: 'success',
                     title: 'Éxito',
                     text: `Archivos subidos: ${summary.success}`,
                     timer: 5000,
