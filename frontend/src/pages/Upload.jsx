@@ -112,7 +112,8 @@ function Upload() {
             if (summary.failed > 0) {
                 Swal.fire(
                     'Carga parcial',
-                    `Subidos: ${summary.success}, Fallidos: ${summary.failed}`,
+                    `Subidos: ${summary.success},
+                    Fallidos: ${summary.failed}`,
                     'warning'
                 );
             } else {
@@ -120,7 +121,7 @@ function Upload() {
                 Swal.fire({
                     icon: 'Success',
                     title: 'Éxito',
-                    text: '`Archivos subidos: ${summary.success}`',
+                    text: `Archivos subidos: ${summary.success}`,
                     timer: 5000,
                     timerProgressBar: true,
                     // showConfirmButton: true,
